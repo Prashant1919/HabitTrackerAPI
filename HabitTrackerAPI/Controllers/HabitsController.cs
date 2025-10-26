@@ -1,4 +1,6 @@
 ﻿using HabitTrackerAPI.Data;
+using HabitTrackerAPI.DTO;
+using HabitTrackerAPI.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,50 +11,59 @@ namespace HabitTrackerAPI.Controllers
 
     public class HabitsController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public HabitsController(AppDbContext context)
+        private readonly IHabitservice _habitservice;
+       
+        public HabitsController(IHabitservice service)
         {
-            _context = context;
-        }
-        [HttpGet("allhabits")]
-        public async Task<IActionResult> GetHabits()
-        {
-           var data= await _context.Habits.Include(h=>h.User).ToListAsync();
-            return Ok(data);
+            _habitservice = service;
         }
        
         [HttpPost]
-        public async Task<IActionResult> AddHabit([FromBody] Model.Habit habit)
+        public async Task<IActionResult> AddHabit([FromBody] CreateHabitDto dto)
         {
-            var user = await _context.Users.FindAsync(habit.Id);
-            if (user == null)
-                return NotFound($"User with ID {habit.Id} not found.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            _context.Habits.Add(habit);
-            await _context.SaveChangesAsync();
+            var habit = await _habitservice.AddHabitAsync(dto);
             return Ok(habit);
-
         }
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateHabit(int id,Model.Habit habit)
+        
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllHabits()
         {
-            var existing = await _context.Habits.FindAsync(id);
-            if (existing != null) return NotFound();
-            existing.Name=habit.Name;
-            existing.Frequency=habit.Frequency;
-            await _context.SaveChangesAsync();
-            return Ok(existing);
+            var habits = await _habitservice.GetAllHabitsAsync();
+            return Ok(habits);
+        }
+       
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetHabitById(int id)
+        {
+            var habit = await _habitservice.GetHabitByIdAsync(id);
+            if (habit == null)
+                return NotFound($"Habit with ID {id} not found.");
+            return Ok(habit);
+        }
+     
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateHabit(int id, [FromBody] CreateHabitDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var updated = await _habitservice.UpdateHabitAsync(id, dto);
+            if (updated == null)
+                return NotFound($"Habit with ID {id} not found.");
+
+            return Ok(updated);
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteHabit(int id)
         {
-            var habit = await _context.Habits.FindAsync(id);
-            if (habit == null) return NotFound();
-             _context.Habits.Remove(habit);
-            await _context.SaveChangesAsync();
-            return Ok(habit);
+            var success = await _habitservice.DeleteHabitAsync(id);
+            if (!success)
+                return NotFound($"Habit with ID {id} not found.");
 
-
+            return Ok("Habit deleted successfully.");
         }
 
 

@@ -4,8 +4,11 @@ namespace HabitTrackerAPI.Service
 {
     public interface IUserService
     {
-        Task<string> RegisterUserAsync (RegisterUserDto dto);
-        Task<List<RegisterUserDto>> GetAlluser();
+        Task<List<RegisterUserDto>> GetAllUsersAsync();
+        Task<RegisterUserDto?> GetUserByIdAsync(int id);
+        Task<RegisterUserDto> AddUserAsync(CreateUserDtos dto);
+        Task<RegisterUserDto?> UpdateUserAsync(int id, CreateUserDtos dto);
+        Task<bool> DeleteUserAsync(int id);
 
 
     }

@@ -1,5 +1,7 @@
 ﻿using HabitTrackerAPI.Data;
+using HabitTrackerAPI.DTO;
 using HabitTrackerAPI.Model;
+using HabitTrackerAPI.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,58 +11,60 @@ namespace HabitTrackerAPI.Controllers
     [Route("api/habitslogs")]
     public class HabitLogController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public HabitLogController(AppDbContext context) { }
-        //Get All Logs
+        private readonly IHabitLogsService _habitLogService;
+
+        public HabitLogController(IHabitLogsService habitLogService) {
+            _habitLogService = habitLogService;
+        }
+        // ✅ Add Habit Log
+        [HttpPost]
+        public async Task<IActionResult> AddHabitLog([FromBody] CreateHabitLogDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var log = await _habitLogService.AddHabitLogAsync(dto);
+            return Ok(log);
+        }
         [HttpGet("all")]
-        public async Task<IActionResult> GetAlllog()
+        public async Task<IActionResult> GetAllLogs()
         {
-            var data = await _context.HabitLogs.Include(h => h.Habit).ToListAsync();
-            return Ok(data);
-
+            var logs = await _habitLogService.GetAllLogsAsync();
+            return Ok(logs);
         }
-        [HttpGet("habit/{habitId}")]
-        public async Task<IActionResult> GetLogsHabit(int habitId) {
-            var log = await _context.HabitLogs.Where(l => l.Habitid == habitId).ToListAsync();
+        // ✅ Get Log by ID
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetLogById(int id)
+        {
+            var log = await _habitLogService.GetLogByIdAsync(id);
+            if (log == null)
+                return NotFound($"Habit Log with ID {id} not found.");
             return Ok(log);
         }
-        [HttpPost("Habitlog")]
-        public async Task<IActionResult> AddLogs(HabitLog log)
-        {
-            var habit = await _context.Habits.FindAsync(log.Habitid);
-            if (habit == null)
-                return NotFound($"Habit with ID {log.Habitid} not found.");
-
-            // Only link HabitId, do not set log.Habit manually
-            log.Habit = null;
-
-            _context.HabitLogs.Add(log);
-            await _context.SaveChangesAsync();
-
-            return Ok(log);
-
-        }
-        //Update HabitLog
+        // ✅ Update Log
         [HttpPut("{id}")]
-        public async Task<IActionResult> updateLog(int id, HabitLog log)
+        public async Task<IActionResult> UpdateHabitLog(int id, [FromBody] CreateHabitLogDto dto)
         {
-            var existing = await _context.HabitLogs.FindAsync(id);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            if (existing != null) return NotFound();
-            existing.IsCompleted = log.IsCompleted;
-            await _context.SaveChangesAsync();
-            return Ok(existing);
+            var updated = await _habitLogService.UpdateHabitLogAsync(id, dto);
+            if (updated == null)
+                return NotFound($"Habit Log with ID {id} not found.");
+
+            return Ok(updated);
         }
-        //Delete HabitLog
+
+        // ✅ Delete Log
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteLog(int id)
+        public async Task<IActionResult> DeleteHabitLog(int id)
         {
-            var log = await _context.HabitLogs.FindAsync(id);
-            if(log==null) return NotFound();
-            _context.HabitLogs.Remove(log);
-            await _context.SaveChangesAsync();
-            return Ok(log);
+            var success = await _habitLogService.DeleteHabitLogAsync(id);
+            if (!success)
+                return NotFound($"Habit Log with ID {id} not found.");
 
+            return Ok("Habit Log deleted successfully.");
         }
+
     }
 }

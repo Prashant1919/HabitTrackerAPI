@@ -2,9 +2,12 @@
 {
     public interface IUserRepository
     {
-        Task<Model.User>GetUserByEmailAsync(int userid);
-        Task AddUser(Model.User user);
-        Task<List<Model.User>> GetALLUser();
+        Task<List<Model.User>> GetAllUserAysnc();
+        Task<Model.User?> GetUserByIdAysnc(int id);
+        Task<Model.User> AddUserAysnc(Model.User user);
+        Task<Model.User?>UpdateUserAsync(Model.User user);
+        Task<bool> DeleteUserAsync(int id);
+
 
     }
 }

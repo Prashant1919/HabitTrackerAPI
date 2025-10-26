@@ -1,4 +1,6 @@
 ﻿using HabitTrackerAPI.Data;
+using HabitTrackerAPI.DTO;
+using HabitTrackerAPI.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,35 +10,59 @@ namespace HabitTrackerAPI.Controllers
     [Route("api/users")]
     public class UserController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        public UserController(AppDbContext context) { 
-            _context = context;
+        private readonly IUserService _userservice;
+
+        public UserController(IUserService userservice) { 
+            _userservice = userservice;
         }
+      
         [HttpPost("register")]
-        public async Task<IActionResult>Resgister([FromBody] Model.User user)
+        public async Task<IActionResult> Register([FromBody] CreateUserDtos dto)
         {
-            if (user == null)
-                return BadRequest("User data is required.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            // Optional: Check if email already exists
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == user.Email);
-            if (existingUser != null)
-                return BadRequest("Email already registered.");
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var user = await _userservice.AddUserAsync(dto);
             return Ok(user);
-
         }
-        [HttpGet("all")]
-        public async Task<IActionResult> GetUsers()
-        {
-           var data= await _context.Users.ToListAsync();
-            return Ok(data);
-        }
-
-
        
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userservice.GetAllUsersAsync();
+            return Ok(users);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            var user = await _userservice.GetUserByIdAsync(id);
+            if (user == null)
+                return NotFound($"User with ID {id} not found.");
+            return Ok(user);
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] CreateUserDtos dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var updated = await _userservice.UpdateUserAsync(id, dto);
+            if (updated == null)
+                return NotFound($"User with ID {id} not found.");
+
+            return Ok(updated);
+        }
+        // ✅ Delete User
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var success = await _userservice.DeleteUserAsync(id);
+            if (!success)
+                return NotFound($"User with ID {id} not found.");
+            return Ok("User deleted successfully.");
+        }
+
+
+
     }
 }

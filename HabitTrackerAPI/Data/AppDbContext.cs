@@ -13,8 +13,14 @@ namespace HabitTrackerAPI.Data
         public DbSet<HabitLog>HabitLogs { get; set; }
 
 
-        protected AppDbContext()
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Habit>()
+                .HasOne(h => h.User)
+                .WithMany(u => u.Habits)
+                .HasForeignKey(h => h.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // optional
         }
+
     }
 }

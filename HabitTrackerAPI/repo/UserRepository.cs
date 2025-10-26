@@ -11,23 +11,46 @@ namespace HabitTrackerAPI.repo
         {
             _context = context;
         }
-        public async Task<User> GetUserByEmailAsync(int userid)
-        {
-          var data= await _context.Users.FirstOrDefaultAsync(u=>u.Id == userid);
-            return data;
 
-        }
-
-       public  async Task AddUser(User user)
+        public async Task<User> AddUserAysnc(User user)
         {
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
-
+            return user;
         }
 
-        public async Task<List<User>> GetALLUser()
+        public async Task<bool> DeleteUserAsync(int id)
         {
-            return await _context.Users.ToListAsync();
+            var existing = await _context.Users.FindAsync(id);
+            if (existing == null) return false;
+             _context.Users.Remove(existing);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<User>> GetAllUserAysnc()
+        {
+            return await _context.Users.Include(u => u.Habits).ToListAsync();
+                
+            
+        }
+
+        public async Task<User?> GetUserByIdAysnc(int id)
+        {
+             return await _context.Users.Include(u=>u.Habits)
+                .ThenInclude(h=>h.HabitLogs)
+                .FirstOrDefaultAsync(u=>u.Id==id);
+        }
+
+        public async Task<User?> UpdateUserAsync(User user)
+        {
+            var existing = await _context.Users.FindAsync(user.Id);
+            if (existing != null) return null;
+            _context.Entry(user).CurrentValues.SetValues(existing);
+            await _context.SaveChangesAsync();
+            return existing;
         }
     }
+
+
 }

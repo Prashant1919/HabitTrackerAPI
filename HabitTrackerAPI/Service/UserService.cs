@@ -11,40 +11,47 @@ namespace HabitTrackerAPI.Service
     public class UserService : IUserService
     {
         private readonly IUserRepository _repository;
-        public UserService(IUserRepository repository)
+       public UserService(IUserRepository repository)
         {
             _repository = repository;
         }
-        public async Task<List<RegisterUserDto>> GetAlluser()
+
+        public  async Task<RegisterUserDto> AddUserAsync(CreateUserDtos dto)
         {
-            var users = await _repository.GetALLUser();
-            return users.Select(u => new RegisterUserDto
+            var entity = new User
             {
-                Id = u.Id,
-                Name = u.Name,
-                 Email= u.Email
-            }).ToList();
+                Email = dto.Email,
+                Name = dto.Name,
+                PasswordHash = dto.Password // hash later in service
+            };
+            var created = await _repository.AddUserAysnc(entity);
+            return new RegisterUserDto
+            {
+                Id = created.Id,
+                Email = created.Email,
+                Name = created.Name
+
+            };
         }
 
-        public async Task<string> RegisterUserAsync(RegisterUserDto dto)
+        public Task<bool> DeleteUserAsync(int id)
         {
-            var existingUser = await _repository.GetUserByEmailAsync(dto.Id);
-            if (existingUser != null) return "Email already registered.";
+            throw new NotImplementedException();
+        }
 
-            // Hash the password
-            using var sha256 = SHA256.Create();
-            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(dto.Password));
-            var passwordHash = System.Convert.ToBase64String(hashBytes);
+        public Task<List<RegisterUserDto>> GetAllUsersAsync()
+        {
+            throw new NotImplementedException();
+        }
 
-            var user = new User
-            {
-                Name = dto.Name,
-                Email = dto.Email,
-                PasswordHash = passwordHash
-            };
+        public Task<RegisterUserDto?> GetUserByIdAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
 
-            await _repository.AddUser(user);
-            return "User registered successfully.";
+        public Task<RegisterUserDto?> UpdateUserAsync(int id, CreateUserDtos dto)
+        {
+            throw new NotImplementedException();
         }
     }
 }

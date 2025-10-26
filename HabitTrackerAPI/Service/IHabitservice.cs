@@ -4,11 +4,11 @@ namespace HabitTrackerAPI.Service
 {
     public interface IHabitservice
     {
-        Task<List<HabitDto>> GetAllHabitAsync();
-        Task<HabitDto?> GetHabitAsync(HabitDto dto);
-        Task<string> AddHabitAsync(CreateHabitDto dto);
-        Task<string> DeleteHabitAsync(int id);
-        Task<string>updateHabitAsync(int id , UpdateHabitDto dto);
+        Task<List<HabitDto>> GetAllHabitsAsync();
+        Task<HabitDto?> GetHabitByIdAsync(int id);
+        Task<HabitDto> AddHabitAsync(CreateHabitDto dto);
+        Task<HabitDto?> UpdateHabitAsync(int id, CreateHabitDto dto);
+        Task<bool> DeleteHabitAsync(int id);
 
     }
 }
