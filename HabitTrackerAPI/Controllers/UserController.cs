@@ -35,7 +35,7 @@ namespace HabitTrackerAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
-            var user = await _userservice.GetUserByIdAsync(id);
+            var user = await _userservice.GetUserservice(id);
             if (user == null)
                 return NotFound($"User with ID {id} not found.");
             return Ok(user);
@@ -52,7 +52,7 @@ namespace HabitTrackerAPI.Controllers
 
             return Ok(updated);
         }
-        // ✅ Delete User
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {

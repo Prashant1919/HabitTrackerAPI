@@ -5,6 +5,7 @@ using HabitTrackerAPI.repo;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
+using System.Reflection.Metadata.Ecma335;
 
 namespace HabitTrackerAPI.Service
 {
@@ -36,22 +37,69 @@ namespace HabitTrackerAPI.Service
 
         public Task<bool> DeleteUserAsync(int id)
         {
-            throw new NotImplementedException();
+            var result=_repository.DeleteUserAsync(id);
+            return result;
+            
         }
 
-        public Task<List<RegisterUserDto>> GetAllUsersAsync()
+        public async Task<List<RegisterUserDto>> GetAllUsersAsync()
         {
-            throw new NotImplementedException();
+            var users= await _repository.GetAllUserAysnc();
+            var result = users.Select(u => new RegisterUserDto
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Email = u.Email
+            }).ToList();
+            return result;
+
+            
+        }
+            
+        public async  Task<RegisterUserDto?> GetUserservice(int id)
+        {
+            var user = await _repository.GetUserByIdAysnc(id);
+
+            if (user == null)
+                return null;
+
+            return new RegisterUserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                // map additional properties here
+                // Example from Habits:
+                Habit = user.Habits?
+            .Select(h => new HabitDto
+            {
+                Id = h.Id,
+                Description = h.Name
+            }).ToList()
+
+            };
         }
 
-        public Task<RegisterUserDto?> GetUserByIdAsync(int id)
+        public async Task<RegisterUserDto?> UpdateUserAsync(int id, CreateUserDtos dto)
         {
-            throw new NotImplementedException();
-        }
+            var user = await _repository.GetUserByIdAysnc(id);
+            if (user == null) return null;
+            //Add more fields based on your create User
+            user.Name = dto.Name;
+            user.PasswordHash = dto.Password;
+            user.Email = dto.Email;
+            await _repository.UpdateUserAsync(user);
+            return new RegisterUserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email
+                // Map other needed fields
 
-        public Task<RegisterUserDto?> UpdateUserAsync(int id, CreateUserDtos dto)
-        {
-            throw new NotImplementedException();
+
+
+            };
         }
+        
     }
 }

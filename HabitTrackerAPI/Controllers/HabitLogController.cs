@@ -16,7 +16,7 @@ namespace HabitTrackerAPI.Controllers
         public HabitLogController(IHabitLogsService habitLogService) {
             _habitLogService = habitLogService;
         }
-        // ✅ Add Habit Log
+        
         [HttpPost]
         public async Task<IActionResult> AddHabitLog([FromBody] CreateHabitLogDto dto)
         {
@@ -31,8 +31,9 @@ namespace HabitTrackerAPI.Controllers
         {
             var logs = await _habitLogService.GetAllLogsAsync();
             return Ok(logs);
+
         }
-        // ✅ Get Log by ID
+       
         [HttpGet("{id}")]
         public async Task<IActionResult> GetLogById(int id)
         {
@@ -41,7 +42,7 @@ namespace HabitTrackerAPI.Controllers
                 return NotFound($"Habit Log with ID {id} not found.");
             return Ok(log);
         }
-        // ✅ Update Log
+     
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateHabitLog(int id, [FromBody] CreateHabitLogDto dto)
         {
@@ -55,7 +56,7 @@ namespace HabitTrackerAPI.Controllers
             return Ok(updated);
         }
 
-        // ✅ Delete Log
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteHabitLog(int id)
         {
